@@ -30,19 +30,19 @@ final class PlayerChatListener implements Listener<PlayerChatEvent> {
                     .map(ServerConnection::getServer)
                     .orElseThrow();
 
+            // Denied
+            // | The player has an old version, so you can safely deny execution from Velocity
+            if (!result.isAllowed() && player.getProtocolVersion().compareTo(ProtocolVersion.MINECRAFT_1_19_1) < 0) {
+                continuation.resume();
+                return;
+            }
+
             if (!event.getResult().isAllowed()) {
                 server.sendPluginMessage(SignedVelocity.SIGNEDVELOCITY_CHANNEL, output -> {
                     output.writeUTF(player.getUniqueId().toString());
                     output.writeUTF("CHAT_RESULT");
                     output.writeUTF("CANCEL");
                 });
-                continuation.resume();
-                return;
-            }
-
-            // Denied
-            // | The player has an old version, so you can safely deny execution from Velocity
-            if (!result.isAllowed() && player.getProtocolVersion().compareTo(ProtocolVersion.MINECRAFT_1_19_1) < 0) {
                 continuation.resume();
                 return;
             }
