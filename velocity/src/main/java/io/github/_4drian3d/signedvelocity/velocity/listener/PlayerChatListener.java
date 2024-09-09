@@ -26,16 +26,26 @@ final class PlayerChatListener implements Listener<PlayerChatEvent> {
         return EventTask.withContinuation(continuation -> {
             final Player player = event.getPlayer();
 
+            final RegisteredServer server = player.getCurrentServer()
+                    .map(ServerConnection::getServer)
+                    .orElseThrow();
+
+            if (!event.getResult().isAllowed()) {
+                server.sendPluginMessage(SignedVelocity.SIGNEDVELOCITY_CHANNEL, output -> {
+                    output.writeUTF(player.getUniqueId().toString());
+                    output.writeUTF("CHAT_RESULT");
+                    output.writeUTF("CANCEL");
+                });
+                continuation.resume();
+                return;
+            }
+
             // Denied
             // | The player has an old version, so you can safely deny execution from Velocity
             if (!result.isAllowed() && player.getProtocolVersion().compareTo(ProtocolVersion.MINECRAFT_1_19_1) < 0) {
                 continuation.resume();
                 return;
             }
-
-            final RegisteredServer server = player.getCurrentServer()
-                    .map(ServerConnection::getServer)
-                    .orElseThrow();
 
             // Allowed
             // | If the message is allowed simply transmit that should be accepted
